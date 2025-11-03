@@ -41,19 +41,19 @@ struct CourseCardView: View {
             SecureAsyncImage(url: URL(string: course.thumbnail)) { image in
                 image
                     .resizable()
-                    .aspectRatio(16/9, contentMode: .fill)
+                    .scaledToFill()
+                    .frame(height: 160)
+                    .clipped()
             } placeholder: {
-                RoundedRectangle(cornerRadius: Radius.radiusMedium)
+                Rectangle()
                     .fill(Color(.systemGray5))
-                    .aspectRatio(16/9, contentMode: .fit)
+                    .frame(height: 160)
                     .overlay(
                         Image(systemName: "photo")
                             .font(.title2)
                             .foregroundColor(.secondary)
                     )
             }
-            .frame(height: 160)
-            .clipped()
             .cornerRadius(Radius.radiusMedium)
             .accessibilityLabel("Imagen del curso \(course.name)")
 

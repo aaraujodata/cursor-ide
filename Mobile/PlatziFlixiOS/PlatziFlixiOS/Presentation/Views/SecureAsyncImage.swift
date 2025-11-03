@@ -43,13 +43,17 @@ struct SecureAsyncImage<Content: View, Placeholder: View>: View {
     /// This ensures certificate trust is handled correctly
     private func loadImage() async {
         guard let url = url else {
-            isLoading = false
-            hasError = true
+            await MainActor.run {
+                self.isLoading = false
+                self.hasError = true
+            }
             return
         }
 
-        isLoading = true
-        hasError = false
+        await MainActor.run {
+            self.isLoading = true
+            self.hasError = false
+        }
 
         do {
             // Use NetworkManager's shared URLSession with certificate trust
@@ -57,27 +61,37 @@ struct SecureAsyncImage<Content: View, Placeholder: View>: View {
 
             guard let httpResponse = response as? HTTPURLResponse,
                   200...299 ~= httpResponse.statusCode else {
-                print("⚠️  Failed to load image: Invalid response")
-                hasError = true
-                isLoading = false
+                print("⚠️  [Image] Failed to load: Invalid response from \(url)")
+                await MainActor.run {
+                    self.hasError = true
+                    self.isLoading = false
+                }
                 return
             }
 
-            if let uiImage = UIImage(data: data) {
+            guard let uiImage = UIImage(data: data) else {
+                print("⚠️  [Image] Failed to decode image data from \(url)")
                 await MainActor.run {
-                    self.image = uiImage
+                    self.hasError = true
                     self.isLoading = false
-                    self.hasError = false
                 }
-            } else {
-                print("⚠️  Failed to load image: Invalid image data")
-                hasError = true
-                isLoading = false
+                return
+            }
+
+            // Successfully loaded image
+            print("✅ [Image] Loaded successfully: \(uiImage.size.width)x\(uiImage.size.height) from \(url.lastPathComponent)")
+
+            await MainActor.run {
+                self.image = uiImage
+                self.isLoading = false
+                self.hasError = false
             }
         } catch {
-            print("❌ Error loading image from \(url): \(error.localizedDescription)")
-            hasError = true
-            isLoading = false
+            print("❌ [Image] Error loading from \(url): \(error.localizedDescription)")
+            await MainActor.run {
+                self.hasError = true
+                self.isLoading = false
+            }
         }
     }
 }

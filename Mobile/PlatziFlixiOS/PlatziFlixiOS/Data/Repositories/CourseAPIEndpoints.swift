@@ -15,9 +15,10 @@ enum CourseAPIEndpoints {
 
 extension CourseAPIEndpoints: APIEndpoint {
     var baseURL: String {
-        return "http://localhost:8000"
+        // Use API configuration to support both localhost and production HTTPS
+        return APIConfiguration.baseURL
     }
-    
+
     var path: String {
         switch self {
         case .getAllCourses:
@@ -26,23 +27,23 @@ extension CourseAPIEndpoints: APIEndpoint {
             return "/courses/\(slug)"
         }
     }
-    
+
     var method: HTTPMethod {
         switch self {
         case .getAllCourses, .getCourseBySlug:
             return .GET
         }
     }
-    
+
     var headers: [String : String]? {
         return nil // Using default headers from APIEndpoint extension
     }
-    
+
     var parameters: [String : Any]? {
         return nil
     }
-    
+
     var body: Data? {
         return nil
     }
-} 
+}

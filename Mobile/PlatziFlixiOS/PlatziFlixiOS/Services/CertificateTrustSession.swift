@@ -12,12 +12,25 @@ final class CertificateTrustSession {
     private let trustManager: CertificateTrustManager
 
     private init() {
-        // Configure certificate trust manager with corporate domains
+        // Configure trusted domains for corporate CA certificates
+        var trustedDomains: Set<String> = [
+            "cdn.mdstrm.com",
+            "thumbs.cdn.mdstrm.com"
+        ]
+
+        // Add production API domain if using HTTPS
+        if APIConfiguration.isSecure {
+            // Extract domain from production URL
+            if let url = URL(string: APIConfiguration.baseURL),
+               let host = url.host {
+                trustedDomains.insert(host)
+                print("🔒 [CertificateTrustSession] Added API domain: \(host)")
+            }
+        }
+
+        // Configure certificate trust manager with all trusted domains
         trustManager = CertificateTrustManager(
-            trustedDomains: [
-                "cdn.mdstrm.com",
-                "thumbs.cdn.mdstrm.com"
-            ]
+            trustedDomains: trustedDomains
         )
 
         // Create URLSessionConfiguration

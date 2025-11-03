@@ -1,43 +1,49 @@
 import Foundation
 
 /// Network configuration helper
-/// Use this to configure certificate trust settings for your app
+/// Use this to configure certificate trust settings and API environment
 enum NetworkConfiguration {
 
-    /// Configure the shared NetworkManager with certificate trust settings
-    /// Call this in your app's initialization (e.g., PlatziFlixiOSApp)
-    static func configureCertificateTrust() {
-        // Example configurations:
+    /// Configure the API environment
+    /// Change this in APIConfiguration.swift to switch between:
+    /// - .development: http://localhost:8000
+    /// - .production: https://platziflix-api.alexisaraujo.com
+    /// - .custom("your-url"): Custom URL
+    static func printCurrentConfiguration() {
+        APIConfiguration.printConfiguration()
+    }
 
-        // Option 1: Trust specific corporate domains
-        // Uncomment and modify with your domains:
-        /*
-        _ = NetworkManager(
-            trustedDomains: [
-                "api.company.com",
-                "cdn.company.com",
-                "snowflakecomputing.com"
-            ]
-        )
-        */
+    /// Quick switch to production environment
+    /// This is a helper method - actual configuration is in APIConfiguration.swift
+    static func useProduction() {
+        print("⚠️  To switch to production, update APIConfiguration.current to .production")
+        print("📝 File: PlatziFlixiOS/Services/APIConfiguration.swift")
+        print("📝 Change: static let current: Environment = .production")
+    }
 
-        // Option 2: Allow self-signed certificates (DEVELOPMENT ONLY!)
-        // ⚠️ WARNING: Never use this in production!
-        // Uncomment only for local development:
-        /*
-        _ = NetworkManager(
-            allowSelfSignedCertificates: true
-        )
-        */
+    /// Quick switch to development environment
+    /// This is a helper method - actual configuration is in APIConfiguration.swift
+    static func useDevelopment() {
+        print("⚠️  To switch to development, update APIConfiguration.current to .development")
+        print("📝 File: PlatziFlixiOS/Services/APIConfiguration.swift")
+        print("📝 Change: static let current: Environment = .development")
+    }
+}
 
-        // Option 3: Both (recommended for corporate environments)
-        // Uncomment and modify:
-        /*
-        _ = NetworkManager(
-            trustedDomains: ["api.company.com"],
-            allowSelfSignedCertificates: false  // Set to true only for dev
-        )
-        */
+// MARK: - Environment Detection Helper
+extension NetworkConfiguration {
+    /// Automatically detect environment based on build configuration
+    static var isDebugBuild: Bool {
+        #if DEBUG
+        return true
+        #else
+        return false
+        #endif
+    }
+
+    /// Recommended environment based on build type
+    static var recommendedEnvironment: APIConfiguration.Environment {
+        return isDebugBuild ? .development : .production
     }
 }
 

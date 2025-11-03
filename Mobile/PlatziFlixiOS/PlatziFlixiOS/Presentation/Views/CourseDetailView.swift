@@ -108,19 +108,19 @@ struct CourseDetailView: View {
         SecureAsyncImage(url: URL(string: course.thumbnail)) { image in
             image
                 .resizable()
-                .aspectRatio(16/9, contentMode: .fill)
+                .scaledToFill() // Better scaling than aspectRatio with .fill
+                .frame(height: 220)
+                .clipped()
         } placeholder: {
-            RoundedRectangle(cornerRadius: 0)
+            Rectangle()
                 .fill(Color(.systemGray5))
-                .aspectRatio(16/9, contentMode: .fit)
+                .frame(height: 220)
                 .overlay(
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .primaryBlue))
                 )
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 220) // Reduced height for better proportions
-        .clipped()
         .accessibilityLabel("Imagen del curso \(course.name)")
     }
 

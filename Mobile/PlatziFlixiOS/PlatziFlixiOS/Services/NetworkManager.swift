@@ -5,13 +5,28 @@ final class NetworkManager: NetworkService {
     /// Shared singleton instance
     /// Configure this in your app's initialization if you need certificate trust handling
     static let shared: NetworkManager = {
-        // Configure with your corporate domains here if needed
-        // Add domains that use corporate CA certificates
+        // Print API configuration for debugging
+        APIConfiguration.printConfiguration()
+
+        // Configure trusted domains for corporate CA certificates
+        // Includes: CDN domains and production API domain
+        var trustedDomains: Set<String> = [
+            "cdn.mdstrm.com",
+            "thumbs.cdn.mdstrm.com"
+        ]
+
+        // Add production API domain if using HTTPS
+        if APIConfiguration.isSecure {
+            // Extract domain from production URL
+            if let url = URL(string: APIConfiguration.baseURL),
+               let host = url.host {
+                trustedDomains.insert(host)
+                print("🔒 [Network] Added API domain to trusted list: \(host)")
+            }
+        }
+
         return NetworkManager(
-            trustedDomains: [
-                "cdn.mdstrm.com",
-                "thumbs.cdn.mdstrm.com"
-            ]
+            trustedDomains: trustedDomains
         )
     }()
 
