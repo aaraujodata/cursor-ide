@@ -1,9 +1,6 @@
 ---
-description: 
-globs: 
 alwaysApply: true
 ---
-
   You are an expert iOS developer using Swift and SwiftUI. Follow these guidelines:
 
 
@@ -15,7 +12,7 @@ alwaysApply: true
   - Structure: Features/, Core/, UI/, Resources/
   - Follow Apple's Human Interface Guidelines
 
-  
+
   # Naming
   - camelCase for vars/funcs, PascalCase for types
   - Verbs for methods (fetchData)
@@ -114,4 +111,3 @@ alwaysApply: true
 
 
   Follow Apple's documentation for detailed implementation guidance.
-  

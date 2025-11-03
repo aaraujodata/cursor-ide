@@ -9,8 +9,10 @@ enum NetworkError: Error, LocalizedError {
     case encodingError(Error)
     case networkUnavailable
     case timeout
+    case certificateValidationFailed
+    case sslError(Error)
     case unknown(Error)
-    
+
     var errorDescription: String? {
         switch self {
         case .invalidURL:
@@ -29,8 +31,12 @@ enum NetworkError: Error, LocalizedError {
             return "Network unavailable"
         case .timeout:
             return "Request timeout"
+        case .certificateValidationFailed:
+            return "Certificate validation failed. The server's certificate is not trusted."
+        case .sslError(let error):
+            return "SSL/TLS error: \(error.localizedDescription)"
         case .unknown(let error):
             return "Unknown error: \(error.localizedDescription)"
         }
     }
-} 
+}

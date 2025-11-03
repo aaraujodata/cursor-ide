@@ -5,64 +5,80 @@ import Foundation
 struct CourseCardView: View {
     let course: Course
     let onTap: (() -> Void)?
-    
+
     init(course: Course, onTap: (() -> Void)? = nil) {
         self.course = course
         self.onTap = onTap
     }
-    
+
+    @ViewBuilder
     var body: some View {
-        Button(action: {
-            onTap?()
-        }) {
-            VStack(alignment: .leading, spacing: Spacing.spacing3) {
-                // Course thumbnail
-                AsyncImage(url: URL(string: course.thumbnail)) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(16/9, contentMode: .fill)
-                } placeholder: {
-                    RoundedRectangle(cornerRadius: Radius.radiusMedium)
-                        .fill(Color(.systemGray5))
-                        .aspectRatio(16/9, contentMode: .fit)
-                        .overlay(
-                            Image(systemName: "photo")
-                                .font(.title2)
-                                .foregroundColor(.secondary)
-                        )
-                }
-                .frame(height: 160)
-                .clipped()
-                .cornerRadius(Radius.radiusMedium)
-                .accessibilityLabel("Imagen del curso \(course.name)")
-                
-                // Course information
-                VStack(alignment: .leading, spacing: Spacing.spacing2) {
-                    Text(course.name)
-                        .font(.title3)
-                        .foregroundColor(.primary)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
-                        .accessibilityAddTraits(.isHeader)
-                    
-                    Text(course.displayDescription)
-                        .font(.bodyRegular)
-                        .foregroundColor(.secondary)
-                        .lineLimit(3)
-                        .multilineTextAlignment(.leading)
-                }
-                .padding(.horizontal, Spacing.spacing3)
-                .padding(.bottom, Spacing.spacing4)
+        // Card content view - extracted for reuse
+        let cardContent = cardContentBody
+
+        // Wrap in Button only if onTap is provided (for standalone use)
+        // When used inside NavigationLink, onTap will be nil and Button won't be used
+        if let onTap = onTap {
+            Button(action: onTap) {
+                cardContent
             }
+            .buttonStyle(PlainButtonStyle())
+            .accessibilityAction(named: "Ver curso") {
+                onTap()
+            }
+        } else {
+            cardContent
         }
-        .buttonStyle(PlainButtonStyle())
+    }
+
+    // MARK: - Private View Components
+
+    /// The card content without button wrapper
+    private var cardContentBody: some View {
+        VStack(alignment: .leading, spacing: Spacing.spacing3) {
+            // Course thumbnail
+            // Using SecureAsyncImage to handle corporate CA certificates
+            SecureAsyncImage(url: URL(string: course.thumbnail)) { image in
+                image
+                    .resizable()
+                    .aspectRatio(16/9, contentMode: .fill)
+            } placeholder: {
+                RoundedRectangle(cornerRadius: Radius.radiusMedium)
+                    .fill(Color(.systemGray5))
+                    .aspectRatio(16/9, contentMode: .fit)
+                    .overlay(
+                        Image(systemName: "photo")
+                            .font(.title2)
+                            .foregroundColor(.secondary)
+                    )
+            }
+            .frame(height: 160)
+            .clipped()
+            .cornerRadius(Radius.radiusMedium)
+            .accessibilityLabel("Imagen del curso \(course.name)")
+
+            // Course information
+            VStack(alignment: .leading, spacing: Spacing.spacing2) {
+                Text(course.name)
+                    .font(.title3)
+                    .foregroundColor(.primary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .accessibilityAddTraits(.isHeader)
+
+                Text(course.displayDescription)
+                    .font(.bodyRegular)
+                    .foregroundColor(.secondary)
+                    .lineLimit(3)
+                    .multilineTextAlignment(.leading)
+            }
+            .padding(.horizontal, Spacing.spacing3)
+            .padding(.bottom, Spacing.spacing4)
+        }
         .cardStyle()
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Curso: \(course.name)")
         .accessibilityHint("Doble toque para ver los detalles del curso")
-        .accessibilityAction(named: "Ver curso") {
-            onTap?()
-        }
     }
 }
 
@@ -92,4 +108,4 @@ struct CourseCardView: View {
         }
     }
     .padding()
-} 
+}

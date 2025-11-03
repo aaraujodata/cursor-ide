@@ -4,14 +4,14 @@ import SwiftUI
 struct CourseListView: View {
     @StateObject private var viewModel = CourseListViewModel()
     @State private var showSearchBar = false
-    
+
     var body: some View {
         NavigationView {
             ZStack {
                 // Background color - using system background for better dark mode
                 Color.groupedBackground
                     .ignoresSafeArea()
-                
+
                 if viewModel.isLoadingCourses {
                     // Loading state
                     loadingView
@@ -52,15 +52,15 @@ struct CourseListView: View {
         }
         .navigationViewStyle(StackNavigationViewStyle())
     }
-    
+
     // MARK: - View Components
-    
+
     private var loadingView: some View {
         VStack(spacing: Spacing.spacing6) {
             ProgressView()
                 .scaleEffect(1.5)
                 .progressViewStyle(CircularProgressViewStyle(tint: .primaryBlue))
-            
+
             Text("Cargando cursos...")
                 .font(.bodyEmphasized)
                 .foregroundColor(.secondary)
@@ -68,25 +68,25 @@ struct CourseListView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Cargando cursos")
     }
-    
+
     private var emptyView: some View {
         VStack(spacing: Spacing.spacing6) {
             Image(systemName: "book.closed")
                 .font(.system(size: 64))
                 .foregroundColor(.secondary)
-            
+
             VStack(spacing: Spacing.spacing3) {
                 Text("No hay cursos disponibles")
                     .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
-                
+
                 Text("Intenta recargar o vuelve más tarde")
                     .font(.bodyRegular)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
             }
-            
+
             Button("Recargar") {
                 viewModel.refreshCourses()
             }
@@ -101,7 +101,7 @@ struct CourseListView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel("No hay cursos disponibles. Intenta recargar o vuelve más tarde")
     }
-    
+
     private var courseListContent: some View {
         ScrollView {
             LazyVStack(spacing: Spacing.spacing4) {
@@ -116,14 +116,18 @@ struct CourseListView: View {
                     .padding(.horizontal, Spacing.spacing4)
                     .padding(.top, Spacing.spacing2)
                 }
-                
+
                 // Course list - Changed from grid to vertical stack
                 LazyVStack(spacing: Spacing.spacing4) {
                     ForEach(viewModel.filteredCourses) { course in
-                        CourseCardView(course: course) {
-                            viewModel.selectCourse(course)
+                        // Navigation link to course detail view
+                        NavigationLink(destination: CourseDetailView(course: course)) {
+                            CourseCardView(course: course)
                         }
+                        .buttonStyle(PlainButtonStyle())
                         .accessibilityAddTraits(.isButton)
+                        .accessibilityLabel("Curso: \(course.name)")
+                        .accessibilityHint("Doble toque para ver los detalles del curso")
                     }
                 }
                 .padding(.horizontal, Spacing.spacing4)
@@ -152,4 +156,4 @@ struct CourseListView: View {
 #Preview("iPad") {
     CourseListView()
         .previewDevice("iPad Pro (11-inch) (4th generation)")
-} 
+}

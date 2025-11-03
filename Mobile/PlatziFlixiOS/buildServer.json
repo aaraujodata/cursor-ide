@@ -12,8 +12,8 @@
 	"argv": [
 		"/opt/homebrew/bin/xcode-build-server"
 	],
-	"workspace": "/Users/santiago.moreno/Documents/PLATZI/Cursos/Cursor-Mobile-Prod/cursor-ide/Mobile/PlatziFlixiOS/PlatziFlixiOS.xcodeproj/project.xcworkspace",
-	"build_root": "/Users/santiago.moreno/Library/Developer/Xcode/DerivedData/PlatziFlixiOS-cpbgajcuoprkvpdrtraecpimacwu",
+	"workspace": "/Users/alexis.araujo/Documents/cursos/cursor-ide/Mobile/PlatziFlixiOS/PlatziFlixiOS.xcodeproj/project.xcworkspace",
+	"build_root": "/Users/alexis.araujo/Library/Developer/Xcode/DerivedData/PlatziFlixiOS-eislhusobbnpjdglktudbbcegmjz",
 	"scheme": "PlatziFlixiOS",
 	"kind": "xcode"
 }
