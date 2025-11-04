@@ -8,6 +8,7 @@ class CourseListViewModel: ObservableObject {
     // MARK: - Published Properties
     @Published var courses: [Course] = []
     @Published var isLoading: Bool = false
+    @Published var isRefreshing: Bool = false
     @Published var errorMessage: String? = nil
     @Published var searchText: String = ""
 
@@ -57,10 +58,11 @@ class CourseListViewModel: ObservableObject {
         }
     }
 
-    /// Refreshes the course list
+    /// Refreshes the course list (pull-to-refresh)
+    /// Sets isRefreshing flag to show skeleton loading during refresh
     func refreshCourses() {
         Task {
-            await performLoadCourses()
+            await performRefreshCourses()
         }
     }
 
@@ -80,7 +82,7 @@ class CourseListViewModel: ObservableObject {
 
     // MARK: - Private Methods
 
-    /// Performs the actual course loading operation
+    /// Performs the actual course loading operation (initial load)
     private func performLoadCourses() async {
         isLoading = true
         errorMessage = nil
@@ -94,6 +96,23 @@ class CourseListViewModel: ObservableObject {
         }
 
         isLoading = false
+    }
+
+    /// Performs refresh operation (pull-to-refresh)
+    /// Uses isRefreshing flag to show skeleton loading during refresh
+    private func performRefreshCourses() async {
+        isRefreshing = true
+        errorMessage = nil
+
+        do {
+            let fetchedCourses = try await courseRepository.getAllCourses()
+            courses = fetchedCourses
+        } catch {
+            errorMessage = handleError(error)
+            // Don't clear courses on refresh error - keep existing data
+        }
+
+        isRefreshing = false
     }
 
     /// Handles and formats error messages for user display

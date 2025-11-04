@@ -13,14 +13,21 @@ struct CourseListView: View {
                     .ignoresSafeArea()
 
                 if viewModel.isLoadingCourses {
-                    // Loading state
+                    // Initial loading state - show skeleton cards
                     loadingView
                 } else if viewModel.isEmpty {
                     // Empty state
                     emptyView
                 } else {
-                    // Course list content
-                    courseListContent
+                    // Course list content with refresh skeleton overlay
+                    ZStack {
+                        courseListContent
+
+                        // Show skeleton cards during pull-to-refresh
+                        if viewModel.isRefreshing {
+                            refreshSkeletonOverlay
+                        }
+                    }
                 }
             }
             .navigationTitle("Últimos cursos lanzados")
@@ -55,18 +62,47 @@ struct CourseListView: View {
 
     // MARK: - View Components
 
+    /// Skeleton loading view that displays placeholder cards matching the course card layout
+    /// Used during initial load - follows modern iOS skeleton loading pattern (2025)
     private var loadingView: some View {
-        VStack(spacing: Spacing.spacing6) {
-            ProgressView()
-                .scaleEffect(1.5)
-                .progressViewStyle(CircularProgressViewStyle(tint: .primaryBlue))
-
-            Text("Cargando cursos...")
-                .font(.bodyEmphasized)
-                .foregroundColor(.secondary)
+        ScrollView {
+            LazyVStack(spacing: Spacing.spacing4) {
+                // Display 5 skeleton cards during initial loading
+                // This provides immediate visual feedback and matches the expected content structure
+                ForEach(0..<5, id: \.self) { _ in
+                    CourseCardSkeletonView()
+                }
+            }
+            .padding(.horizontal, Spacing.spacing4)
+            .padding(.top, Spacing.spacing2)
+            .padding(.bottom, Spacing.spacing6)
         }
-        .accessibilityElement(children: .combine)
         .accessibilityLabel("Cargando cursos")
+        .accessibilityHint("Los cursos se están cargando. Por favor espera")
+    }
+
+    /// Skeleton overlay shown during pull-to-refresh
+    /// Replaces content temporarily to show loading state
+    private var refreshSkeletonOverlay: some View {
+        ScrollView {
+            LazyVStack(spacing: Spacing.spacing4) {
+                // Display skeleton cards - show same number as existing courses (max 5)
+                // If no courses exist, show 3 skeleton cards for visual feedback
+                let skeletonCount = viewModel.filteredCourses.isEmpty
+                    ? 3
+                    : min(viewModel.filteredCourses.count, 5)
+
+                ForEach(0..<skeletonCount, id: \.self) { _ in
+                    CourseCardSkeletonView()
+                }
+            }
+            .padding(.horizontal, Spacing.spacing4)
+            .padding(.top, Spacing.spacing2)
+            .padding(.bottom, Spacing.spacing6)
+        }
+        .background(Color.groupedBackground)
+        .accessibilityLabel("Actualizando cursos")
+        .accessibilityHint("Los cursos se están actualizando. Por favor espera")
     }
 
     private var emptyView: some View {
