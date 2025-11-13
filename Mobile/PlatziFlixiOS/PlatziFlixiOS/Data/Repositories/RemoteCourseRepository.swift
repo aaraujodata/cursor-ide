@@ -10,31 +10,41 @@ import Foundation
 /// Remote implementation of CourseRepository
 /// Fetches course data from the API using NetworkService
 final class RemoteCourseRepository: CourseRepository {
-    
+
     // MARK: - Properties
     private let networkService: NetworkService
-    
+
     // MARK: - Initialization
     init(networkService: NetworkService = NetworkManager.shared) {
         self.networkService = networkService
     }
-    
+
     // MARK: - CourseRepository Implementation
-    
+
     /// Fetches all courses from the remote API
     func getAllCourses() async throws -> [Course] {
         let endpoint = CourseAPIEndpoints.getAllCourses
         let courseDTOs = try await networkService.request(endpoint, responseType: [CourseDTO].self)
         return CourseMapper.toDomain(courseDTOs)
     }
-    
+
     /// Fetches a specific course by slug from the remote API
     func getCourseBySlug(_ slug: String) async throws -> Course {
+        print("🌐 [RemoteCourseRepository] Fetching course detail for slug: \(slug)")
         let endpoint = CourseAPIEndpoints.getCourseBySlug(slug)
         let courseDetailDTO = try await networkService.request(endpoint, responseType: CourseDetailDTO.self)
-        return CourseMapper.toDomain(courseDetailDTO)
+        print("📦 [RemoteCourseRepository] Received CourseDetailDTO:")
+        print("   - Course ID: \(courseDetailDTO.id)")
+        print("   - Course Name: \(courseDetailDTO.name)")
+        print("   - Classes count in DTO: \(courseDetailDTO.classes?.count ?? 0)")
+        if let classes = courseDetailDTO.classes {
+            print("   - Classes: \(classes.map { "\($0.id): \($0.name)" })")
+        }
+        let course = CourseMapper.toDomain(courseDetailDTO)
+        print("✅ [RemoteCourseRepository] Mapped to Course domain model")
+        return course
     }
-    
+
     /// Fetches all courses with Result wrapper for error handling
     func getAllCoursesResult() async -> Result<[Course], Error> {
         do {
@@ -44,7 +54,7 @@ final class RemoteCourseRepository: CourseRepository {
             return .failure(error)
         }
     }
-    
+
     /// Fetches a specific course by slug with Result wrapper for error handling
     func getCourseBySlugResult(_ slug: String) async -> Result<Course, Error> {
         do {

@@ -24,17 +24,16 @@ class CourseDetailViewModel: ObservableObject {
         self.course = course
         self.courseRepository = courseRepository
 
-        // Lazy loading: Only fetch full details if we're missing critical data
-        // This follows iOS best practices of showing what we have immediately
-        // and only loading additional data when needed
+        // Always load full course details to get classes and complete information
+        // The list endpoint doesn't include classes, so we need to fetch the detail
         if let course = course {
-            // Check if we're missing important data (teacher info, classes, etc.)
-            let needsDetailLoad = course.teacherIds.isEmpty && course.teachers == nil
+            print("🔄 [CourseDetailViewModel] Initializing with course, will load full details")
+            print("   - Course slug: \(course.slug)")
+            print("   - Current classes count: \(course.classes?.count ?? 0)")
 
-            if needsDetailLoad {
-                Task {
-                    await performLoadCourseDetail(slug: course.slug)
-                }
+            // Always fetch full details to get classes and complete metadata
+            Task {
+                await performLoadCourseDetail(slug: course.slug)
             }
         }
     }
@@ -80,13 +79,23 @@ class CourseDetailViewModel: ObservableObject {
     /// Performs the actual course detail loading operation
     /// - Parameter slug: The course slug to fetch
     private func performLoadCourseDetail(slug: String) async {
+        print("📥 [CourseDetailViewModel] Loading course detail for slug: \(slug)")
         isLoading = true
         errorMessage = nil
 
         do {
             let fetchedCourse = try await courseRepository.getCourseBySlug(slug)
+            print("✅ [CourseDetailViewModel] Course loaded successfully:")
+            print("   - Course ID: \(fetchedCourse.id)")
+            print("   - Course Name: \(fetchedCourse.name)")
+            print("   - Classes count: \(fetchedCourse.classes?.count ?? 0)")
+            print("   - Has classes: \(fetchedCourse.hasClasses)")
+            if let classes = fetchedCourse.classes {
+                print("   - Classes: \(classes.map { "\($0.id): \($0.name)" })")
+            }
             course = fetchedCourse
         } catch {
+            print("❌ [CourseDetailViewModel] Error loading course: \(error)")
             errorMessage = handleError(error)
             // Keep existing course if available
         }

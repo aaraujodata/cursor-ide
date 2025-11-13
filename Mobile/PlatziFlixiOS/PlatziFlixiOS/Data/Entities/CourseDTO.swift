@@ -42,12 +42,14 @@ struct ClassDTO: Codable {
     let name: String
     let description: String
     let slug: String
+    let videoUrl: String? // Optional for mock data support (not in production API)
 
     enum CodingKeys: String, CodingKey {
         case id
         case name
         case description
         case slug
+        case videoUrl = "video_url"
     }
 }
 

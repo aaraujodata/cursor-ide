@@ -14,6 +14,7 @@ struct Course: Identifiable, Equatable {
     let deletedAt: Date?
     let averageRating: Double?
     let totalRatings: Int?
+    let classes: [Class]? // Classes/lessons for this course (from detail endpoint)
 
     /// Computed property to check if course is active
     var isActive: Bool {
@@ -41,6 +42,12 @@ struct Course: Identifiable, Equatable {
         }
         return !teacherIds.isEmpty
     }
+
+    /// Computed property to check if course has classes/lessons
+    var hasClasses: Bool {
+        guard let classes = classes else { return false }
+        return !classes.isEmpty
+    }
 }
 
 // MARK: - Mock Data for Preview
@@ -58,7 +65,8 @@ extension Course {
             updatedAt: Date(),
             deletedAt: nil,
             averageRating: 4.8,
-            totalRatings: 142
+            totalRatings: 142,
+            classes: Class.mockClasses
         ),
         Course(
             id: 5,
@@ -72,7 +80,8 @@ extension Course {
             updatedAt: Date(),
             deletedAt: nil,
             averageRating: 4.5,
-            totalRatings: 89
+            totalRatings: 89,
+            classes: nil
         ),
         Course(
             id: 6,
@@ -86,7 +95,8 @@ extension Course {
             updatedAt: Date(),
             deletedAt: nil,
             averageRating: 4.3,
-            totalRatings: 67
+            totalRatings: 67,
+            classes: nil
         ),
         Course(
             id: 7,
@@ -100,7 +110,8 @@ extension Course {
             updatedAt: Date(),
             deletedAt: nil,
             averageRating: 4.6,
-            totalRatings: 54
+            totalRatings: 54,
+            classes: nil
         ),
         Course(
             id: 8,
@@ -114,7 +125,8 @@ extension Course {
             updatedAt: Date(),
             deletedAt: nil,
             averageRating: 4.9,
-            totalRatings: 201
+            totalRatings: 201,
+            classes: nil
         ),
         Course(
             id: 9,
@@ -128,7 +140,8 @@ extension Course {
             updatedAt: Date(),
             deletedAt: nil,
             averageRating: 4.7,
-            totalRatings: 128
+            totalRatings: 128,
+            classes: nil
         )
     ]
-} 
+}
