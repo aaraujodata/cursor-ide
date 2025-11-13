@@ -96,7 +96,7 @@ struct CourseDetailView: View {
     /// - Parameter course: The course to check
     /// - Returns: True if there's metadata to display
     private func hasMetadata(course: Course) -> Bool {
-        return !course.teacherIds.isEmpty || course.createdAt != nil
+        return course.hasTeacherInfo || course.createdAt != nil
     }
 
     /// Course thumbnail header
@@ -105,20 +105,28 @@ struct CourseDetailView: View {
     @ViewBuilder
     private func courseThumbnailSection(course: Course) -> some View {
         // Using SecureAsyncImage to handle corporate CA certificates
-        SecureAsyncImage(url: URL(string: course.thumbnail)) { image in
-            image
-                .resizable()
-                .scaledToFill() // Better scaling than aspectRatio with .fill
-                .frame(height: 220)
-                .clipped()
-        } placeholder: {
-            Rectangle()
-                .fill(Color(.systemGray5))
-                .frame(height: 220)
-                .overlay(
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .primaryBlue))
-                )
+        ZStack(alignment: .bottomTrailing) {
+            SecureAsyncImage(url: URL(string: course.thumbnail)) { image in
+                image
+                    .resizable()
+                    .scaledToFill() // Better scaling than aspectRatio with .fill
+                    .frame(height: 220)
+                    .clipped()
+            } placeholder: {
+                Rectangle()
+                    .fill(Color(.systemGray5))
+                    .frame(height: 220)
+                    .overlay(
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .primaryBlue))
+                    )
+            }
+
+            // Rating badge overlay (only show if course has ratings)
+            if course.hasRatings, let rating = course.averageRating {
+                CourseRatingBadge(rating: rating, totalRatings: course.totalRatings)
+                    .padding(Spacing.spacing3)
+            }
         }
         .frame(maxWidth: .infinity)
         .accessibilityLabel("Imagen del curso \(course.name)")
@@ -129,13 +137,38 @@ struct CourseDetailView: View {
     /// - Returns: View with course info
     @ViewBuilder
     private func courseInfoSection(course: Course) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.spacing2) {
+        VStack(alignment: .leading, spacing: Spacing.spacing3) {
             Text(course.name)
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
                 .accessibilityAddTraits(.isHeader)
                 .fixedSize(horizontal: false, vertical: true) // Allow text wrapping
+
+            // Rating display (if available)
+            if course.hasRatings, let rating = course.averageRating, let totalRatings = course.totalRatings {
+                HStack(spacing: Spacing.spacing2) {
+                    // Stars display
+                    HStack(spacing: Spacing.spacing1) {
+                        ForEach(0..<5) { index in
+                            Image(systemName: index < Int(rating.rounded()) ? "star.fill" : "star")
+                                .font(.caption)
+                                .foregroundColor(.yellow)
+                        }
+                    }
+
+                    // Rating text
+                    Text("\(String(format: "%.1f", rating))")
+                        .font(.bodyEmphasized)
+                        .foregroundColor(.primary)
+
+                    // Total ratings count
+                    Text("(\(totalRatings) \(totalRatings == 1 ? "valoración" : "valoraciones"))")
+                        .font(.captionRegular)
+                        .foregroundColor(.secondary)
+                }
+                .accessibilityLabel("Calificación \(String(format: "%.1f", rating)) de 5 estrellas, basada en \(totalRatings) valoraciones")
+            }
 
             // Course status badge
             if course.isActive {
@@ -183,20 +216,52 @@ struct CourseDetailView: View {
     private func courseMetadataSection(course: Course) -> some View {
         VStack(alignment: .leading, spacing: Spacing.spacing4) {
             // Teachers section
-            if !course.teacherIds.isEmpty {
-                VStack(alignment: .leading, spacing: Spacing.spacing2) {
+            if course.hasTeacherInfo {
+                VStack(alignment: .leading, spacing: Spacing.spacing3) {
                     Text("Instructores")
                         .font(.headline)
                         .foregroundColor(.primary)
                         .accessibilityAddTraits(.isHeader)
 
-                    HStack(spacing: Spacing.spacing2) {
-                        Image(systemName: "person.2.fill")
-                            .font(.caption)
-                            .foregroundColor(.primaryBlue)
-                        Text("\(course.teacherIds.count) instructor\(course.teacherIds.count == 1 ? "" : "es")")
-                            .font(.bodyRegular)
-                            .foregroundColor(.secondary)
+                    // Show teacher details if available, otherwise just count
+                    if let teachers = course.teachers, !teachers.isEmpty {
+                        VStack(alignment: .leading, spacing: Spacing.spacing2) {
+                            ForEach(teachers) { teacher in
+                                HStack(spacing: Spacing.spacing3) {
+                                    // Teacher avatar/initials
+                                    Circle()
+                                        .fill(Color.primaryBlue.opacity(0.2))
+                                        .frame(width: 40, height: 40)
+                                        .overlay(
+                                            Text(teacher.initials)
+                                                .font(.caption)
+                                                .fontWeight(.semibold)
+                                                .foregroundColor(.primaryBlue)
+                                        )
+
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(teacher.name)
+                                            .font(.bodyEmphasized)
+                                            .foregroundColor(.primary)
+                                        Text(teacher.email)
+                                            .font(.caption2Regular)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                .accessibilityElement(children: .combine)
+                                .accessibilityLabel("Instructor: \(teacher.name)")
+                            }
+                        }
+                    } else if !course.teacherIds.isEmpty {
+                        // Fallback when we only have IDs
+                        HStack(spacing: Spacing.spacing2) {
+                            Image(systemName: "person.2.fill")
+                                .font(.caption)
+                                .foregroundColor(.primaryBlue)
+                            Text("\(course.teacherIds.count) instructor\(course.teacherIds.count == 1 ? "" : "es")")
+                                .font(.bodyRegular)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
             }

@@ -19,9 +19,12 @@ struct CourseMapper {
             thumbnail: dto.thumbnail,
             slug: dto.slug,
             teacherIds: dto.teacherId ?? [],
+            teachers: nil, // List endpoint doesn't include full teacher info
             createdAt: parseDate(dto.createdAt),
             updatedAt: parseDate(dto.updatedAt),
-            deletedAt: parseDate(dto.deletedAt)
+            deletedAt: parseDate(dto.deletedAt),
+            averageRating: dto.averageRating,
+            totalRatings: dto.totalRatings
         )
     }
     
@@ -39,9 +42,12 @@ struct CourseMapper {
             thumbnail: dto.thumbnail,
             slug: dto.slug,
             teacherIds: dto.teacherId ?? [],
+            teachers: nil, // API returns only IDs, not full teacher objects
             createdAt: nil, // Detail DTO doesn't include dates
             updatedAt: nil,
-            deletedAt: nil
+            deletedAt: nil,
+            averageRating: dto.averageRating,
+            totalRatings: dto.totalRatings
         )
     }
     

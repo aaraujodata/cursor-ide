@@ -7,7 +7,7 @@ struct APIConfiguration {
     /// Change this to switch between development and production
     /// - .development: Use for iOS Simulator (connects to localhost on Mac)
     /// - .production: Use for Physical Device (connects to HTTPS via Cloudflare)
-    static let current: Environment = .development
+    static let current: Environment = .production
 
     /// Available environments
     enum Environment {
@@ -20,10 +20,10 @@ struct APIConfiguration {
             switch self {
             case .development:
                 // Local development server
-                return "http://localhost:8000"
+                return "http://localhost:8005"
             case .production:
                 // Cloudflare Tunnel HTTPS endpoint
-                return "https://platziflix-api.alexisaraujo.com"
+                return "https://platziflix-api-v2.alexisaraujo.com"
             case .custom(let url):
                 return url
             }

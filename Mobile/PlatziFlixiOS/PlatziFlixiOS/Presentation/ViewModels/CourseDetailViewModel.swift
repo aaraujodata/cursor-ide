@@ -24,9 +24,18 @@ class CourseDetailViewModel: ObservableObject {
         self.course = course
         self.courseRepository = courseRepository
 
-        // If course is provided, use it; otherwise load from API if slug is available
-        if course == nil {
-            // This will be set when navigating with a course
+        // Lazy loading: Only fetch full details if we're missing critical data
+        // This follows iOS best practices of showing what we have immediately
+        // and only loading additional data when needed
+        if let course = course {
+            // Check if we're missing important data (teacher info, classes, etc.)
+            let needsDetailLoad = course.teacherIds.isEmpty && course.teachers == nil
+
+            if needsDetailLoad {
+                Task {
+                    await performLoadCourseDetail(slug: course.slug)
+                }
+            }
         }
     }
 
@@ -47,12 +56,9 @@ class CourseDetailViewModel: ObservableObject {
         // Use the provided course immediately for instant display
         self.course = course
 
-        // Optionally fetch full details from API if needed
-        // For now, we'll use the course passed from the list
-        // In the future, you might want to fetch additional details
+        // Fetch full details from API (teachers, classes, complete rating info, etc.)
         Task {
-            // You can enhance this to fetch full course details with classes, etc.
-            // await performLoadCourseDetail(slug: course.slug)
+            await performLoadCourseDetail(slug: course.slug)
         }
     }
 

@@ -36,23 +36,31 @@ struct CourseCardView: View {
     /// The card content without button wrapper
     private var cardContentBody: some View {
         VStack(alignment: .leading, spacing: Spacing.spacing3) {
-            // Course thumbnail
+            // Course thumbnail with rating badge overlay
             // Using SecureAsyncImage to handle corporate CA certificates
-            SecureAsyncImage(url: URL(string: course.thumbnail)) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-                    .frame(height: 160)
-                    .clipped()
-            } placeholder: {
-                Rectangle()
-                    .fill(Color(.systemGray5))
-                    .frame(height: 160)
-                    .overlay(
-                        Image(systemName: "photo")
-                            .font(.title2)
-                            .foregroundColor(.secondary)
-                    )
+            ZStack(alignment: .bottomTrailing) {
+                SecureAsyncImage(url: URL(string: course.thumbnail)) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(height: 160)
+                        .clipped()
+                } placeholder: {
+                    Rectangle()
+                        .fill(Color(.systemGray5))
+                        .frame(height: 160)
+                        .overlay(
+                            Image(systemName: "photo")
+                                .font(.title2)
+                                .foregroundColor(.secondary)
+                        )
+                }
+
+                // Rating badge overlay (only show if course has ratings)
+                if course.hasRatings, let rating = course.averageRating {
+                    CourseRatingBadge(rating: rating, totalRatings: course.totalRatings)
+                        .padding(Spacing.spacing2)
+                }
             }
             .cornerRadius(Radius.radiusMedium)
             .accessibilityLabel("Imagen del curso \(course.name)")
