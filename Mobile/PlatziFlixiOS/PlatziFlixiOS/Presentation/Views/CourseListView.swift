@@ -4,6 +4,10 @@ import SwiftUI
 struct CourseListView: View {
     @StateObject private var viewModel = CourseListViewModel()
     @State private var showSearchBar = false
+    @State private var showProfile = false
+
+    /// Auth ViewModel for profile/logout functionality
+    var authViewModel: AuthViewModel?
 
     var body: some View {
         NavigationView {
@@ -33,6 +37,7 @@ struct CourseListView: View {
             .navigationTitle("Últimos cursos lanzados")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
+                // Search button
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
                         withAnimation(.easeInOut(duration: 0.3)) {
@@ -44,6 +49,21 @@ struct CourseListView: View {
                     }
                     .accessibilityLabel("Buscar cursos")
                 }
+
+                // Profile button (only show if authViewModel is available)
+                if authViewModel != nil {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button(action: {
+                            showProfile = true
+                        }) {
+                            Image(systemName: "person.circle.fill")
+                                .font(.title3)
+                                .foregroundColor(.primaryGreen)
+                        }
+                        .accessibilityLabel("Ver perfil")
+                        .accessibilityHint("Abre tu perfil y opciones de cuenta")
+                    }
+                }
             }
             .searchable(
                 text: $viewModel.searchText,
@@ -54,6 +74,11 @@ struct CourseListView: View {
             .refreshable {
                 await MainActor.run {
                     viewModel.refreshCourses()
+                }
+            }
+            .sheet(isPresented: $showProfile) {
+                if let authViewModel = authViewModel {
+                    ProfileView(viewModel: authViewModel)
                 }
             }
         }

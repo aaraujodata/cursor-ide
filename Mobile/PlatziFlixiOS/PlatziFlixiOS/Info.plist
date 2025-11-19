@@ -10,6 +10,17 @@
 		<true/>
 		<key>NSExceptionDomains</key>
 		<dict>
+		<key>lszvsnpptqscsuorhmec.supabase.co</key>
+		<dict>
+			<key>NSIncludesSubdomains</key>
+			<true/>
+			<key>NSExceptionAllowsInsecureHTTPLoads</key>
+			<true/>
+			<key>NSExceptionRequiresForwardSecrecy</key>
+			<false/>
+			<key>NSTemporaryExceptionMinimumTLSVersion</key>
+			<string>TLSv1.0</string>
+		</dict>
 			<key>cdn.mdstrm.com</key>
 			<dict>
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>

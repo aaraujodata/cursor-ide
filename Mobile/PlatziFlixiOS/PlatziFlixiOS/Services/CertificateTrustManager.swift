@@ -40,20 +40,27 @@ final class CertificateTrustManager: NSObject, URLSessionDelegate {
         completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
     ) {
         // Debug log: Log the challenge details
-        print("🔒 Certificate Trust Challenge:")
-        print("   - Protection Space: \(challenge.protectionSpace.host)")
-        print("   - Authentication Method: \(challenge.protectionSpace.authenticationMethod)")
-        print("   - Server Trust: \(challenge.protectionSpace.serverTrust != nil ? "Present" : "Missing")")
+        print("🔒 [CertificateTrust] ==================")
+        print("🔒 [CertificateTrust] Certificate Trust Challenge Received")
+        print("🔒 [CertificateTrust] Protection Space:")
+        print("🔒 [CertificateTrust]   - Host: \(challenge.protectionSpace.host)")
+        print("🔒 [CertificateTrust]   - Port: \(challenge.protectionSpace.port)")
+        print("🔒 [CertificateTrust]   - Protocol: \(challenge.protectionSpace.protocol ?? "unknown")")
+        print("🔒 [CertificateTrust]   - Auth Method: \(challenge.protectionSpace.authenticationMethod)")
+        print("🔒 [CertificateTrust]   - Server Trust: \(challenge.protectionSpace.serverTrust != nil ? "Present" : "Missing")")
 
         // Get the server trust object
         guard let serverTrust = challenge.protectionSpace.serverTrust else {
-            print("❌ No server trust provided")
+            print("❌ [CertificateTrust] No server trust provided - rejecting")
+            print("🔒 [CertificateTrust] ==================")
             completionHandler(.cancelAuthenticationChallenge, nil)
             return
         }
 
         // Get the hostname
         let hostname = challenge.protectionSpace.host
+        print("🔒 [CertificateTrust] Evaluating certificate for: \(hostname)")
+        print("🔒 [CertificateTrust] Trusted domains list: \(trustedDomains)")
 
         // Check if this is a trusted domain or localhost (for development)
         // Also check if any trusted domain is a suffix of the hostname (for subdomains)
@@ -64,29 +71,39 @@ final class CertificateTrustManager: NSObject, URLSessionDelegate {
                               hostname.contains("localhost") ||
                               hostname.contains("127.0.0.1")
 
+        print("🔒 [CertificateTrust] Is trusted domain? \(isTrustedDomain)")
+        print("🔒 [CertificateTrust] Allow self-signed? \(allowSelfSignedCertificates)")
+
         // Evaluate the certificate chain using modern API (iOS 13+)
+        print("🔒 [CertificateTrust] Evaluating certificate with system trust...")
         var error: CFError?
         let isCertificateValid = SecTrustEvaluateWithError(serverTrust, &error)
 
         // Debug log: Certificate evaluation result
         if let error = error {
-            print("   - Trust Evaluation Error: \(error.localizedDescription)")
+            print("❌ [CertificateTrust] Trust Evaluation Error: \(error.localizedDescription)")
+            // Bridge CFError to NSError for accessing code and domain
+            let nsError = error as Error as NSError
+            print("❌ [CertificateTrust] Error code: \(nsError.code)")
+            print("❌ [CertificateTrust] Error domain: \(nsError.domain)")
         } else {
-            print("   - Trust Evaluation: Valid")
+            print("✅ [CertificateTrust] Trust Evaluation: Valid")
         }
 
         // If certificate is valid, accept it
         if isCertificateValid {
-            print("✅ Certificate is valid according to system trust")
+            print("✅ [CertificateTrust] Certificate is valid according to system trust")
             let credential = URLCredential(trust: serverTrust)
+            print("✅ [CertificateTrust] Using credential - accepting connection")
+            print("🔒 [CertificateTrust] ==================")
             completionHandler(.useCredential, credential)
             return
         }
 
         // If it's a trusted domain (corporate CA) or self-signed certs are allowed
         if isTrustedDomain || allowSelfSignedCertificates {
-            print("⚠️  Trusting certificate for domain: \(hostname)")
-            print("   - Reason: Trusted domain or self-signed allowed")
+            print("⚠️  [CertificateTrust] Trusting certificate for domain: \(hostname)")
+            print("⚠️  [CertificateTrust] Reason: \(isTrustedDomain ? "Domain in trusted list" : "Self-signed allowed")")
 
             // Get certificate chain for debugging
             if let certificateChain = getCertificateChain(from: serverTrust) {
@@ -95,15 +112,20 @@ final class CertificateTrustManager: NSObject, URLSessionDelegate {
 
             // Create credential and accept the challenge
             let credential = URLCredential(trust: serverTrust)
+            print("⚠️  [CertificateTrust] Using credential - accepting connection")
+            print("🔒 [CertificateTrust] ==================")
             completionHandler(.useCredential, credential)
             return
         }
 
         // Default: Cancel the challenge if certificate is not trusted
-        print("❌ Certificate validation failed for: \(hostname)")
-        print("   - Certificate is not in system trust store")
-        print("   - Domain is not in trusted domains list")
-        print("   - Self-signed certificates are not allowed")
+        print("❌ [CertificateTrust] Certificate validation FAILED for: \(hostname)")
+        print("❌ [CertificateTrust] Rejection reasons:")
+        print("❌ [CertificateTrust]   - Certificate is not in system trust store")
+        print("❌ [CertificateTrust]   - Domain '\(hostname)' is NOT in trusted domains list")
+        print("❌ [CertificateTrust]   - Self-signed certificates are NOT allowed")
+        print("❌ [CertificateTrust] CANCELING authentication challenge")
+        print("🔒 [CertificateTrust] ==================")
         completionHandler(.cancelAuthenticationChallenge, nil)
     }
 
