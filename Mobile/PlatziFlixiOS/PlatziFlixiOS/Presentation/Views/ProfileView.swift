@@ -17,9 +17,6 @@ struct ProfileView: View {
     /// Auth ViewModel to manage logout
     @ObservedObject var viewModel: AuthViewModel
 
-    /// Dismiss action to close sheet
-    @Environment(\.dismiss) var dismiss
-
     /// Show logout confirmation
     @State private var showLogoutConfirmation = false
 
@@ -58,14 +55,6 @@ struct ProfileView: View {
             }
             .navigationTitle("Profile")
             .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                    .foregroundColor(.primaryGreen)
-                }
-            }
             .confirmationDialog(
                 "Are you sure you want to log out?",
                 isPresented: $showLogoutConfirmation,
@@ -283,6 +272,8 @@ struct ProfileView: View {
     // MARK: - Actions
 
     /// Handle logout action
+    /// Note: After logout, ContentView will automatically show AuthView
+    /// due to isAuthenticated state change
     private func handleLogout() async {
         print("🔐 [Profile] ==================")
         print("🔐 [Profile] Starting logout...")
@@ -291,8 +282,8 @@ struct ProfileView: View {
         print("✅ [Profile] Logout successful")
         print("🔐 [Profile] ==================")
 
-        // Dismiss the profile view
-        dismiss()
+        // No need to dismiss - ContentView handles navigation automatically
+        // when isAuthenticated becomes false
     }
 }
 

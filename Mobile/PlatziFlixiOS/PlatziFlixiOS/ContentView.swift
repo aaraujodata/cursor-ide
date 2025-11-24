@@ -22,9 +22,9 @@ struct ContentView: View {
     var body: some View {
         Group {
             if authViewModel.isAuthenticated {
-                // User is authenticated - show main app
-                // PASS authViewModel to CourseListView for profile/logout
-                CourseListView(authViewModel: authViewModel)
+                // User is authenticated - show main app with tab navigation
+                // MainTabView contains Home and Profile tabs
+                MainTabView(authViewModel: authViewModel)
             } else {
                 // User is NOT authenticated - show login/signup
                 // PASS the ViewModel so AuthView uses the SAME one

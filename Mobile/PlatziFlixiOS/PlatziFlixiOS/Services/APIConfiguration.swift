@@ -7,7 +7,7 @@ struct APIConfiguration {
     /// Change this to switch between development and production
     /// - .development: Use for iOS Simulator (connects to localhost on Mac)
     /// - .production: Use for Physical Device (connects to HTTPS via Cloudflare)
-    static let current: Environment = .production
+    static let current: Environment = .development
 
     /// Available environments
     enum Environment {
