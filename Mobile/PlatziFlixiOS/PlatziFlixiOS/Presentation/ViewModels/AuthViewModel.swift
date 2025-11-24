@@ -172,9 +172,21 @@ final class AuthViewModel: ObservableObject {
 
             print("✅ [AuthViewModel] Sign in with \(provider.displayName) successful")
         case .failure(let error):
-            self.errorMessage = error.localizedDescription
+            // Check if user cancelled the sign-in (don't show error for cancellations)
+            let errorDescription = error.localizedDescription.lowercased()
+            let isCancellation = errorDescription.contains("cancelled") ||
+                                 errorDescription.contains("canceled") ||
+                                 errorDescription.contains("user denied")
+            
+            if isCancellation {
+                // User cancelled - just log it, don't show error message
+                print("ℹ️ [AuthViewModel] Sign in with \(provider.displayName) cancelled by user")
+            } else {
+                // Actual error - show to user
+                self.errorMessage = error.localizedDescription
+                print("❌ [AuthViewModel] Sign in with \(provider.displayName) failed: \(error.localizedDescription)")
+            }
             self.isAuthenticated = false
-            print("❌ [AuthViewModel] Sign in with \(provider.displayName) failed: \(error.localizedDescription)")
         }
 
         isLoading = false

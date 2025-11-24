@@ -7,6 +7,8 @@
 
 import Foundation
 import Supabase
+import UIKit
+import AuthenticationServices
 
 /// Supabase implementation of AuthRepository protocol
 /// Handles all authentication operations using Supabase Auth
@@ -300,10 +302,79 @@ final class SupabaseAuthRepository: AuthRepository {
     }
 
     /// Signs in with OAuth provider (Google, Facebook)
+    /// Uses ASWebAuthenticationSession for web-based OAuth flow
     private func signInWithOAuth(provider: AuthProvider) async throws -> AuthSession {
-        // This will use Supabase's OAuth flow
-        // For iOS, we'll need to handle deep linking
-        throw AuthError.unknown(NSError(domain: "NotImplemented", code: -1))
+        print("🔐 [Auth] ==================")
+        print("🔐 [Auth] Starting OAuth flow for provider: \(provider.displayName)")
+
+        // For Google, use the native GoogleSignIn SDK via GoogleAuthService
+        if provider == .google {
+            return try await signInWithGoogleNative()
+        }
+
+        // For other providers, use web-based OAuth with ASWebAuthenticationSession
+        print("🔐 [Auth] Using web-based OAuth flow")
+
+        do {
+            // Use Supabase's signInWithOAuth with ASWebAuthenticationSession
+            let session = try await supabase.auth.signInWithOAuth(
+                provider: mapToSupabaseProvider(provider)
+            ) { (session: ASWebAuthenticationSession) in
+                // Configure the ASWebAuthenticationSession
+                session.prefersEphemeralWebBrowserSession = false
+            }
+
+            print("✅ [Auth] OAuth sign in successful")
+            print("🔐 [Auth] ==================")
+            return mapToAuthSession(session: session)
+
+        } catch {
+            print("❌ [Auth] OAuth error: \(error.localizedDescription)")
+            print("🔐 [Auth] ==================")
+            throw mapSupabaseError(error)
+        }
+    }
+
+    /// Native Google Sign-In using GoogleSignIn SDK
+    @MainActor
+    private func signInWithGoogleNative() async throws -> AuthSession {
+        print("🔵 [Auth] Using native Google Sign-In")
+
+        // Get the presenting view controller (must be on main thread)
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let viewController = windowScene.windows.first?.rootViewController else {
+            print("❌ [Auth] Could not get presenting view controller")
+            throw AuthError.providerError("Could not present Google Sign-In")
+        }
+
+        // Configure GoogleAuthService with Supabase client
+        GoogleAuthService.shared.configure(with: supabase)
+
+        do {
+            // signIn is also @MainActor, so this is safe
+            let session = try await GoogleAuthService.shared.signIn(presenting: viewController)
+            return mapToAuthSession(session: session)
+        } catch let error as GoogleAuthError {
+            print("❌ [Auth] Google Sign-In error: \(error.localizedDescription)")
+            throw AuthError.providerError(error.localizedDescription)
+        } catch {
+            print("❌ [Auth] Unexpected Google Sign-In error: \(error.localizedDescription)")
+            throw mapSupabaseError(error)
+        }
+    }
+
+    /// Maps our AuthProvider to Supabase Provider
+    private func mapToSupabaseProvider(_ provider: AuthProvider) -> Provider {
+        switch provider {
+        case .google:
+            return .google
+        case .apple:
+            return .apple
+        case .facebook:
+            return .facebook
+        case .email:
+            fatalError("Email provider should not use OAuth flow")
+        }
     }
 
     // MARK: - Mapping Functions
