@@ -295,10 +295,80 @@ final class SupabaseAuthRepository: AuthRepository {
     }
 
     /// Signs in with Apple using native AuthenticationServices
+    @MainActor
     private func signInWithAppleNative() async throws -> AuthSession {
-        // This will be implemented in a separate service
-        // See AppleAuthService.swift
-        throw AuthError.unknown(NSError(domain: "NotImplemented", code: -1))
+        print("🍎 [Auth] Using native Sign in with Apple")
+
+        // Create Apple Auth Service
+        let appleAuthService = AppleAuthService()
+
+        // Perform Apple Sign-In and wait for result
+        let appleResult = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AppleSignInResult, Error>) in
+            appleAuthService.signIn { result in
+                switch result {
+                case .success(let appleSignInResult):
+                    continuation.resume(returning: appleSignInResult)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+
+        // Extract identity token
+        guard let identityTokenData = appleResult.identityToken,
+              let identityToken = String(data: identityTokenData, encoding: .utf8) else {
+            print("❌ [Auth] No identity token received from Apple")
+            throw AuthError.providerError("No identity token received from Apple")
+        }
+
+        print("🍎 [Auth] ✓ Received identity token from Apple")
+        print("🍎 [Auth] Identity Token: \(identityToken.prefix(30))...")
+        print("🍎 [Auth] User ID: \(appleResult.userID)")
+        print("🍎 [Auth] Email: \(appleResult.email ?? "hidden/not provided")")
+        print("🍎 [Auth] Full Name: \(appleResult.fullNameString ?? "not provided")")
+
+        // Sign in with Supabase using the identity token
+        print("🍎 [Auth] Authenticating with Supabase...")
+
+        do {
+            let session = try await supabase.auth.signInWithIdToken(
+                credentials: OpenIDConnectCredentials(
+                    provider: .apple,
+                    idToken: identityToken
+                )
+            )
+
+            print("✅ [Auth] Apple Sign-In successful")
+            print("🍎 [Auth] User ID: \(session.user.id)")
+            print("🍎 [Auth] Email: \(session.user.email ?? "N/A")")
+
+            // Create auth session with Apple user info
+            let authSession = mapToAuthSession(session: session)
+
+            // Update user with Apple name if provided (only on first sign-in)
+            if let givenName = appleResult.givenName,
+               let familyName = appleResult.familyName {
+                print("🍎 [Auth] Updating user profile with Apple name...")
+                do {
+                    _ = try await updateUserProfile(
+                        fullName: appleResult.fullNameString,
+                        givenName: givenName,
+                        familyName: familyName,
+                        avatarURL: nil
+                    )
+                    print("✅ [Auth] User profile updated with Apple name")
+                } catch {
+                    print("⚠️ [Auth] Failed to update profile with Apple name: \(error.localizedDescription)")
+                    // Don't fail the sign-in if profile update fails
+                }
+            }
+
+            return authSession
+
+        } catch {
+            print("❌ [Auth] Supabase signInWithIdToken failed for Apple: \(error.localizedDescription)")
+            throw mapSupabaseError(error)
+        }
     }
 
     /// Signs in with OAuth provider (Google, Facebook)

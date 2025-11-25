@@ -2,7 +2,20 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- App Transport Security -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.117833718854-5nqfijeihq5n988asbpm27u62ptv70hv</string>
+				<string>platziflixios</string>
+			</array>
+		</dict>
+	</array>
+	<key>GIDClientID</key>
+	<string>117833718854-5nqfijeihq5n988asbpm27u62ptv70hv.apps.googleusercontent.com</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoadsForMedia</key>
@@ -11,17 +24,6 @@
 		<true/>
 		<key>NSExceptionDomains</key>
 		<dict>
-		<key>lszvsnpptqscsuorhmec.supabase.co</key>
-		<dict>
-			<key>NSIncludesSubdomains</key>
-			<true/>
-			<key>NSExceptionAllowsInsecureHTTPLoads</key>
-			<true/>
-			<key>NSExceptionRequiresForwardSecrecy</key>
-			<false/>
-			<key>NSTemporaryExceptionMinimumTLSVersion</key>
-			<string>TLSv1.0</string>
-		</dict>
 			<key>cdn.mdstrm.com</key>
 			<dict>
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
@@ -40,6 +42,17 @@
 				<key>NSIncludesSubdomains</key>
 				<true/>
 			</dict>
+			<key>lszvsnpptqscsuorhmec.supabase.co</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSExceptionRequiresForwardSecrecy</key>
+				<false/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+				<key>NSTemporaryExceptionMinimumTLSVersion</key>
+				<string>TLSv1.0</string>
+			</dict>
 			<key>platziflix-api.alexisaraujo.com</key>
 			<dict>
 				<key>NSExceptionRequiresForwardSecrecy</key>
@@ -49,25 +62,5 @@
 			</dict>
 		</dict>
 	</dict>
-
-	<!-- Google Sign-In URL Schemes -->
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<!-- Google Sign-In reversed client ID -->
-				<string>com.googleusercontent.apps.117833718854-5nqfijeihq5n988asbpm27u62ptv70hv</string>
-				<!-- Deep link scheme for app -->
-				<string>platziflixios</string>
-			</array>
-		</dict>
-	</array>
-
-	<!-- Google iOS Client ID for Sign-In -->
-	<key>GIDClientID</key>
-	<string>117833718854-5nqfijeihq5n988asbpm27u62ptv70hv.apps.googleusercontent.com</string>
 </dict>
 </plist>
